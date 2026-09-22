@@ -64,7 +64,7 @@ export default function SignupPage() {
           title: "Account Created! 🎉",
           description: "Welcome to Chefora! Taking you to your dashboard...",
         })
-        router.push("/dashboard")
+        window.location.href = "/dashboard"
       } else {
         toast({
           title: "Registration Failed",

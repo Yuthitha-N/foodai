@@ -44,7 +44,7 @@ export default function LoginPage() {
           title: "Welcome back! 🎉",
           description: "Successfully logged in to your account.",
         })
-        router.push("/dashboard")
+        window.location.href = "/dashboard"
       } else {
         toast({
           title: "Login Failed",
