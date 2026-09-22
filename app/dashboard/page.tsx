@@ -33,6 +33,7 @@ import { RecipeReviews } from "@/components/recipe-reviews"
 import { FavoriteRecipeCard } from "@/components/favorite-recipe-card"
 import { GroceryListGenerator } from "@/components/grocery-list-generator"
 import { RecipeSelectionModal } from "@/components/recipe-selection-modal"
+import { cn } from "@/lib/utils"
 
 interface Recipe {
   id: number
@@ -117,6 +118,7 @@ export default function DashboardPage() {
           if (parsed?.name) {
             setUser({ name: parsed.name, email: parsed.email || "" })
             loadFavorites()
+            handleSearch(undefined, "", "all")
             return
           }
         } catch {
@@ -140,10 +142,12 @@ export default function DashboardPage() {
         setUser({ name: "Chef", email: "" })
       }
       loadFavorites()
+      handleSearch(undefined, "", "all")
     } catch (error) {
       console.warn("Could not decode user token payload, using fallback:", error)
       setUser({ name: "Chef", email: "" })
       loadFavorites()
+      handleSearch(undefined, "", "all")
     }
   }, [router])
 
@@ -202,18 +206,15 @@ export default function DashboardPage() {
     }
   }
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = async (e?: React.FormEvent, customQuery?: string, customCategory?: string) => {
     if (e) e.preventDefault()
-    if (!searchQuery.trim() && selectedCategory === "all") return
+
+    const q = customQuery !== undefined ? customQuery : searchQuery
+    const cat = customCategory !== undefined ? customCategory : selectedCategory
 
     setIsSearching(true)
     try {
-      let query = searchQuery
-      if (selectedCategory !== "all") {
-        query = selectedCategory === "healthy" ? "healthy" : selectedCategory
-      }
-
-      const response = await fetch(`/api/recipes/search?query=${encodeURIComponent(query)}`)
+      const response = await fetch(`/api/recipes/search?query=${encodeURIComponent(q)}&category=${encodeURIComponent(cat)}`)
       if (response.ok) {
         const data = await response.json()
         setRecipes(data.results || [])
@@ -479,8 +480,14 @@ export default function DashboardPage() {
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="w-40 h-12 border-2">
+                      <Select
+                        value={selectedCategory}
+                        onValueChange={(val) => {
+                          setSelectedCategory(val)
+                          handleSearch(undefined, searchQuery, val)
+                        }}
+                      >
+                        <SelectTrigger className="w-44 h-12 border-2">
                           <Filter className="h-4 w-4 mr-2" />
                           <SelectValue />
                         </SelectTrigger>
@@ -514,17 +521,21 @@ export default function DashboardPage() {
 
                   {/* Category Pills */}
                   <div className="flex flex-wrap gap-2 justify-center">
-                    {categories.slice(1).map((category) => (
+                    {categories.map((category) => (
                       <Button
                         key={category.id}
-                        variant="outline"
+                        variant={selectedCategory === category.id ? "default" : "outline"}
                         size="sm"
                         onClick={() => {
                           setSelectedCategory(category.id)
-                          setSearchQuery("")
-                          handleSearch()
+                          handleSearch(undefined, searchQuery, category.id)
                         }}
-                        className="rounded-full hover:scale-105 transition-transform"
+                        className={cn(
+                          "rounded-full transition-all duration-300 font-medium px-4",
+                          selectedCategory === category.id
+                            ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md scale-105 hover:from-orange-600 hover:to-red-600"
+                            : "hover:scale-105 bg-white/80 text-gray-700"
+                        )}
                       >
                         {category.name}
                       </Button>
@@ -532,6 +543,31 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Category Header & Counter */}
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-2xl font-bold text-gray-800">
+                    {categories.find((c) => c.id === selectedCategory)?.name || "Recipes"}
+                  </h3>
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-700 font-bold px-2.5 py-0.5 text-sm">
+                    {recipes.length} Delicious Dishes
+                  </Badge>
+                </div>
+                {selectedCategory !== "all" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCategory("all")
+                      handleSearch(undefined, searchQuery, "all")
+                    }}
+                    className="text-sm text-gray-500 hover:text-orange-600"
+                  >
+                    View All Categories →
+                  </Button>
+                )}
+              </div>
 
               {/* Recipe Results */}
               {isSearching ? (
