@@ -2,7 +2,7 @@
 import { MongoClient, type Db } from "mongodb";
 
 const DEFAULT_MONGODB_URI =
-  "mongodb://foodrecipe:foodrecipe@ac-vmwautl-shard-00-00.ira8gvx.mongodb.net:27017,ac-vmwautl-shard-00-01.ira8gvx.mongodb.net:27017,ac-vmwautl-shard-00-02.ira8gvx.mongodb.net:27017/chefora?ssl=true&replicaSet=atlas-gzbjmb-shard-0&authSource=admin&retryWrites=true&w=majority";
+  "mongodb+srv://yuthithan23cse_db_user:fwCsLD7ptYO3ncEJ@cluster0.xv6rqbz.mongodb.net/chefora?retryWrites=true&w=majority&appName=Cluster0";
 
 const MONGODB_URI = (process.env.MONGODB_URI || DEFAULT_MONGODB_URI).trim();
 

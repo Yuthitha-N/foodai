@@ -41,17 +41,21 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { recipeId } = await request.json()
-    if (!recipeId && recipeId !== 0) {
+    if (recipeId === undefined || recipeId === null) {
       return NextResponse.json({ message: "Recipe ID is required" }, { status: 400 })
     }
 
     const { db } = await connectToDatabase()
 
+    const rawId = recipeId
+    const idNumber = Number(rawId)
+    const idOptions = isNaN(idNumber) ? [rawId, String(rawId)] : [rawId, idNumber, String(rawId)]
+
     await db.collection("users").updateOne(
       { _id: new ObjectId(authUser.userId) },
       {
         $pull: {
-          favorites: { id: recipeId },
+          favorites: { id: { $in: idOptions } },
         },
       } as any
     )
@@ -71,26 +75,36 @@ export async function PUT(request: NextRequest) {
     }
 
     const updatedRecipe = await request.json()
-    if (!updatedRecipe || !updatedRecipe.id) {
+    if (!updatedRecipe || (updatedRecipe.id === undefined && updatedRecipe.id === null)) {
       return NextResponse.json({ message: "Recipe data with ID is required" }, { status: 400 })
     }
 
     const { db } = await connectToDatabase()
 
-    await db.collection("users").updateOne(
-      {
-        _id: new ObjectId(authUser.userId),
-        "favorites.id": updatedRecipe.id,
-      },
-      {
-        $set: {
-          "favorites.$.personalNotes": updatedRecipe.personalNotes,
-          "favorites.$.personalRating": updatedRecipe.personalRating,
-          "favorites.$.cookingHistory": updatedRecipe.cookingHistory,
-          "favorites.$.updatedAt": new Date(),
-        },
-      }
-    )
+    const rawId = updatedRecipe.id
+    const idNumber = Number(rawId)
+    const idOptions = isNaN(idNumber) ? [rawId, String(rawId)] : [rawId, idNumber, String(rawId)]
+
+    const user = await db.collection("users").findOne({ _id: new ObjectId(authUser.userId) })
+    if (user && Array.isArray(user.favorites)) {
+      const updatedFavorites = user.favorites.map((fav: any) => {
+        if (idOptions.some((opt) => String(opt) === String(fav.id))) {
+          return {
+            ...fav,
+            personalNotes: updatedRecipe.personalNotes !== undefined ? updatedRecipe.personalNotes : fav.personalNotes,
+            personalRating: updatedRecipe.personalRating !== undefined ? updatedRecipe.personalRating : fav.personalRating,
+            cookingHistory: updatedRecipe.cookingHistory !== undefined ? updatedRecipe.cookingHistory : fav.cookingHistory,
+            updatedAt: new Date(),
+          }
+        }
+        return fav
+      })
+
+      await db.collection("users").updateOne(
+        { _id: new ObjectId(authUser.userId) },
+        { $set: { favorites: updatedFavorites } }
+      )
+    }
 
     return NextResponse.json({ message: "Recipe updated successfully" })
   } catch (error: any) {
