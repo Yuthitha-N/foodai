@@ -571,30 +571,31 @@ export default function DashboardPage() {
 
               {/* Recipe Results */}
               {isSearching ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-stretch">
                   {[...Array(8)].map((_, i) => (
-                    <Card key={i} className="overflow-hidden animate-pulse">
-                      <div className="aspect-video bg-gray-200"></div>
-                      <CardContent className="p-4 space-y-2">
-                        <div className="h-4 bg-gray-200 rounded"></div>
-                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                        <div className="h-8 bg-gray-200 rounded"></div>
+                    <Card key={i} className="overflow-hidden animate-pulse rounded-2xl h-full flex flex-col justify-between">
+                      <div className="aspect-video bg-gray-200 shrink-0 w-full"></div>
+                      <CardContent className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                        <div className="h-5 bg-gray-200 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                        <div className="h-10 bg-gray-200 rounded-xl w-full mt-auto"></div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-stretch">
                   {recipes.map((recipe, index) => (
                     <motion.div
                       key={recipe.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="h-full flex"
                     >
-                      <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.02] cursor-pointer border-0 bg-white/90 backdrop-blur-sm">
+                      <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.02] cursor-pointer border-0 bg-white/95 backdrop-blur-sm rounded-2xl flex flex-col justify-between w-full h-full shadow-md">
                         <div
-                          className="aspect-video relative overflow-hidden"
+                          className="aspect-video relative overflow-hidden shrink-0 w-full bg-gray-100"
                           onClick={() => handleRecipeClick(recipe)}
                         >
                           <img
@@ -602,72 +603,87 @@ export default function DashboardPage() {
                             alt={recipe.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <div className="absolute top-2 right-2">
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          <div className="absolute top-2.5 right-2.5">
                             <Button
                               size="sm"
                               variant="secondary"
-                              className="rounded-full bg-white/90 hover:bg-white shadow-lg"
+                              className="rounded-full bg-white/90 hover:bg-white shadow-lg h-8 w-8 p-0 flex items-center justify-center backdrop-blur-sm"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleSaveRecipe(recipe)
                               }}
                             >
                               <Heart
-                                className={`h-4 w-4 ${isFavorite(recipe.id) ? "fill-red-500 text-red-500" : ""}`}
+                                className={`h-4 w-4 ${isFavorite(recipe.id) ? "fill-red-500 text-red-500" : "text-gray-700"}`}
                               />
                             </Button>
                           </div>
                         </div>
-                        <CardContent className="p-4">
-                          <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors">
-                            {recipe.title}
-                          </h3>
-                          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-                            <div className="flex items-center space-x-3">
-                              <div className="flex items-center">
-                                <Clock className="h-4 w-4 mr-1" />
-                                {recipe.readyInMinutes} min
+
+                        <CardContent className="p-4 flex-1 flex flex-col justify-between">
+                          <div>
+                            <h3
+                              className="font-bold text-base md:text-lg leading-snug line-clamp-2 min-h-[2.8rem] md:min-h-[3.25rem] group-hover:text-orange-600 transition-colors cursor-pointer flex items-start mb-2"
+                              onClick={() => handleRecipeClick(recipe)}
+                            >
+                              {recipe.title}
+                            </h3>
+
+                            <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-3 h-5">
+                              <div className="flex items-center space-x-3">
+                                <div className="flex items-center font-medium">
+                                  <Clock className="h-3.5 w-3.5 mr-1 text-orange-500 shrink-0" />
+                                  {recipe.readyInMinutes} min
+                                </div>
+                                <div className="flex items-center font-medium">
+                                  <Users className="h-3.5 w-3.5 mr-1 text-blue-500 shrink-0" />
+                                  {recipe.servings}
+                                </div>
                               </div>
-                              <div className="flex items-center">
-                                <Users className="h-4 w-4 mr-1" />
-                                {recipe.servings}
-                              </div>
+
+                              {recipe.averageRating ? (
+                                <div className="flex items-center font-semibold text-gray-700">
+                                  <Star className="h-3.5 w-3.5 mr-1 text-yellow-500 fill-yellow-500 shrink-0" />
+                                  <span>{recipe.averageRating}</span>
+                                  <span className="text-[11px] text-gray-400 ml-1">({recipe.totalReviews})</span>
+                                </div>
+                              ) : recipe.spoonacularScore ? (
+                                <div className="flex items-center font-semibold text-gray-700">
+                                  <Star className="h-3.5 w-3.5 mr-1 text-yellow-500 fill-yellow-500 shrink-0" />
+                                  <span>{Math.round(recipe.spoonacularScore)}</span>
+                                </div>
+                              ) : null}
                             </div>
-                            {recipe.averageRating && (
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 mr-1 text-yellow-500 fill-yellow-500" />
-                                <span className="text-sm font-medium">{recipe.averageRating}</span>
-                                <span className="text-xs text-gray-500 ml-1">({recipe.totalReviews})</span>
-                              </div>
-                            )}
-                            {recipe.spoonacularScore && (
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                                {Math.round(recipe.spoonacularScore)}
-                              </div>
-                            )}
                           </div>
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleSaveRecipe(recipe)
-                            }}
-                            className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                            disabled={isFavorite(recipe.id)}
-                          >
-                            {isFavorite(recipe.id) ? (
-                              <>
-                                <Heart className="h-4 w-4 mr-2 fill-current" />
-                                Saved
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="h-4 w-4 mr-2" />
-                                Save Recipe
-                              </>
-                            )}
-                          </Button>
+
+                          <div className="pt-2 mt-auto">
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleSaveRecipe(recipe)
+                              }}
+                              className={cn(
+                                "w-full h-10 font-semibold rounded-xl shadow-md transition-all duration-300",
+                                isFavorite(recipe.id)
+                                  ? "bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-none border border-gray-200"
+                                  : "bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white shadow-orange-500/20 hover:shadow-lg"
+                              )}
+                              disabled={isFavorite(recipe.id)}
+                            >
+                              {isFavorite(recipe.id) ? (
+                                <>
+                                  <Heart className="h-4 w-4 mr-1.5 fill-red-500 text-red-500" />
+                                  Saved in Favorites
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="h-4 w-4 mr-1.5" />
+                                  Save Recipe
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     </motion.div>

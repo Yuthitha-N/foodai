@@ -117,11 +117,11 @@ export function FavoriteRecipeCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: index * 0.1 }}
         whileHover={{ y: -5 }}
-        className="group"
+        className="group h-full flex"
       >
-        <Card className="overflow-hidden hover:shadow-2xl transition-all duration-500 border-0 bg-white/95 backdrop-blur-sm relative">
+        <Card className="overflow-hidden hover:shadow-2xl transition-all duration-500 border-0 bg-white/95 backdrop-blur-sm relative rounded-2xl flex flex-col justify-between w-full h-full shadow-md">
           {/* Recipe Image */}
-          <div className="aspect-video relative overflow-hidden cursor-pointer" onClick={() => onRecipeClick(recipe)}>
+          <div className="aspect-video relative overflow-hidden cursor-pointer shrink-0 w-full bg-gray-100" onClick={() => onRecipeClick(recipe)}>
             <img
               src={recipe.image || "/placeholder.svg?height=200&width=300"}
               alt={recipe.title}
@@ -138,7 +138,7 @@ export function FavoriteRecipeCard({
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="rounded-full bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm"
+                    className="rounded-full bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm h-8 w-8 p-0 flex items-center justify-center"
                   >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
@@ -169,14 +169,14 @@ export function FavoriteRecipeCard({
             </div>
 
             {/* Favorite Badge */}
-            <Badge className="absolute bottom-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg">
+            <Badge className="absolute bottom-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg font-semibold">
               <Heart className="h-3 w-3 mr-1 fill-current" />
               Favorite
             </Badge>
 
             {/* Cooking History Badge */}
             {recipe.cookingHistory && recipe.cookingHistory.length > 0 && (
-              <Badge className="absolute bottom-3 right-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
+              <Badge className="absolute bottom-3 right-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg font-semibold">
                 <ChefHat className="h-3 w-3 mr-1" />
                 Cooked {recipe.cookingHistory.length}x
               </Badge>
@@ -184,69 +184,69 @@ export function FavoriteRecipeCard({
           </div>
 
           {/* Recipe Content */}
-          <CardContent className="p-5 space-y-4">
-            {/* Title */}
+          <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-3">
+            {/* Title & Stats */}
             <div>
               <h3
-                className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-orange-600 transition-colors cursor-pointer"
+                className="font-bold text-base md:text-lg leading-snug line-clamp-2 min-h-[2.8rem] md:min-h-[3.25rem] group-hover:text-orange-600 transition-colors cursor-pointer flex items-start mb-2"
                 onClick={() => onRecipeClick(recipe)}
               >
                 {recipe.title}
               </h3>
 
               {/* Personal Rating */}
-              {recipe.personalRating && (
+              {recipe.personalRating ? (
                 <div className="flex items-center space-x-2 mb-2">
                   <span className="text-xs text-gray-500">Your rating:</span>
                   {renderStars(recipe.personalRating)}
                 </div>
-              )}
-            </div>
+              ) : null}
 
-            {/* Recipe Stats */}
-            <div className="flex items-center justify-between text-sm text-gray-600">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center">
-                  <Clock className="h-4 w-4 mr-1 text-orange-500" />
-                  <span className="font-medium">{recipe.readyInMinutes} min</span>
+              {/* Recipe Stats */}
+              <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 pt-1">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center font-medium">
+                    <Clock className="h-3.5 w-3.5 mr-1 text-orange-500 shrink-0" />
+                    <span>{recipe.readyInMinutes} min</span>
+                  </div>
+                  <div className="flex items-center font-medium">
+                    <Users className="h-3.5 w-3.5 mr-1 text-blue-500 shrink-0" />
+                    <span>{recipe.servings}</span>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-1 text-blue-500" />
-                  <span className="font-medium">{recipe.servings}</span>
-                </div>
+
+                {recipe.averageRating ? (
+                  <div className="flex items-center space-x-1 font-semibold text-gray-700">
+                    <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500 shrink-0" />
+                    <span>{recipe.averageRating}</span>
+                    <span className="text-[11px] text-gray-400">({recipe.totalReviews})</span>
+                  </div>
+                ) : null}
               </div>
-
-              {recipe.averageRating && (
-                <div className="flex items-center space-x-1">
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                  <span className="font-medium">{recipe.averageRating}</span>
-                  <span className="text-xs text-gray-400">({recipe.totalReviews})</span>
-                </div>
-              )}
             </div>
 
             {/* Personal Notes Preview */}
-            {recipe.personalNotes && (
-              <div className="bg-gradient-to-r from-orange-50 to-red-50 p-3 rounded-lg border-l-4 border-orange-400">
-                <p className="text-xs text-gray-500 mb-1">Your notes:</p>
-                <p className="text-sm text-gray-700 line-clamp-2">{recipe.personalNotes}</p>
+            {recipe.personalNotes ? (
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 p-2.5 rounded-lg border-l-4 border-orange-400 my-1">
+                <p className="text-[11px] font-medium text-gray-500 mb-0.5">Your notes:</p>
+                <p className="text-xs text-gray-700 line-clamp-2">{recipe.personalNotes}</p>
               </div>
-            )}
+            ) : null}
 
-            {/* Saved Date */}
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            {/* Saved Date & Actions */}
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-auto">
               <div className="flex items-center text-xs text-gray-500">
-                <Calendar className="h-3 w-3 mr-1" />
-                Saved {formatDate(recipe.savedAt)}
+                <Calendar className="h-3.5 w-3.5 mr-1 text-gray-400" />
+                {formatDate(recipe.savedAt)}
               </div>
 
               {/* Quick Actions */}
-              <div className="flex space-x-2">
+              <div className="flex space-x-1.5">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => setShowEditDialog(true)}
-                  className="h-8 px-3 text-xs hover:bg-orange-50 hover:border-orange-200 hover:text-orange-600"
+                  className="h-7 px-2.5 text-xs hover:bg-orange-50 hover:border-orange-200 hover:text-orange-600 rounded-lg"
                 >
                   <Edit3 className="h-3 w-3 mr-1" />
                   Edit
@@ -255,7 +255,7 @@ export function FavoriteRecipeCard({
                   size="sm"
                   variant="outline"
                   onClick={() => onRemoveFavorite(recipe.id)}
-                  className="h-8 px-3 text-xs hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                  className="h-7 px-2.5 text-xs hover:bg-red-50 hover:border-red-200 hover:text-red-600 rounded-lg"
                 >
                   <Trash2 className="h-3 w-3 mr-1" />
                   Remove
