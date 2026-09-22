@@ -372,7 +372,7 @@ export function GroceryListGenerator({ selectedRecipes, onClose, isOpen }: Groce
                     <img
                       src={recipe.image || "/placeholder.svg?height=40&width=40"}
                       alt={recipe.title}
-                      className="w-10 h-10 object-cover rounded-lg"
+                      className="w-12 h-12 object-cover rounded-lg shrink-0"
                     />
                     <div>
                       <h4 className="font-medium text-gray-900">{recipe.title}</h4>
