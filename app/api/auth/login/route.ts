@@ -18,9 +18,8 @@ export async function POST(request: NextRequest) {
       const conn = await connectToDatabase()
       db = conn.db
     } catch (dbError: any) {
-      console.error("Database connection failed in login:", dbError)
       return NextResponse.json(
-        { message: "Database connection failed. Please check MongoDB Atlas network access and connection string." },
+        { message: `Database connection failed: ${dbError?.message || "Connection timeout"}. Please check MongoDB Atlas network access and connection string.` },
         { status: 503 }
       )
     }

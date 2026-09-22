@@ -25,9 +25,8 @@ export async function POST(request: NextRequest) {
       const conn = await connectToDatabase();
       db = conn.db;
     } catch (dbError: any) {
-      console.error("Database connection failed in registration:", dbError);
       return NextResponse.json(
-        { message: "Database connection failed. Please check MongoDB Atlas network access (allow 0.0.0.0/0) and MONGODB_URI." },
+        { message: `Database connection failed: ${dbError?.message || "Connection timeout"}. Please check MongoDB Atlas network access (allow 0.0.0.0/0) and MONGODB_URI.` },
         { status: 503 }
       );
     }

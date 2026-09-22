@@ -1,13 +1,12 @@
 // lib/mongodb.ts
 import { MongoClient, type Db } from "mongodb";
 
-const DEFAULT_MONGODB_URI =
-  "mongodb+srv://yuthithan23cse_db_user:fwCsLD7ptYO3ncEJ@cluster0.xv6rqbz.mongodb.net/chefora?retryWrites=true&w=majority&appName=Cluster0";
+// Standard direct replica set URI (bypasses Linux SRV DNS lookup issues on cloud hosts like Render)
+const DIRECT_MONGODB_URI =
+  "mongodb://yuthithan23cse_db_user:fwCsLD7ptYO3ncEJ@ac-6day0nw-shard-00-00.xv6rqbz.mongodb.net:27017,ac-6day0nw-shard-00-01.xv6rqbz.mongodb.net:27017,ac-6day0nw-shard-00-02.xv6rqbz.mongodb.net:27017/chefora?ssl=true&replicaSet=atlas-10cd9p-shard-0&authSource=admin&retryWrites=true&w=majority";
 
-const MONGODB_URI = (process.env.MONGODB_URI || DEFAULT_MONGODB_URI).trim();
+const PRIMARY_MONGODB_URI = (process.env.MONGODB_URI || DIRECT_MONGODB_URI).trim();
 
-// Global is used here to maintain a cached connection across hot reloads in development
-// and across serverless function invocations.
 interface GlobalMongo {
   conn: { client: MongoClient; db: Db } | null;
   promise: Promise<{ client: MongoClient; db: Db }> | null;
@@ -24,42 +23,64 @@ if (!global._mongoCache) {
   global._mongoCache = cached;
 }
 
+async function tryConnect(uri: string): Promise<{ client: MongoClient; db: Db }> {
+  const opts = {
+    serverSelectionTimeoutMS: 8000,
+    connectTimeoutMS: 8000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+  };
+
+  const client = new MongoClient(uri, opts);
+  await client.connect();
+
+  let dbName = "chefora";
+  try {
+    const parsed = new URL(
+      uri.startsWith("mongodb")
+        ? uri.replace("mongodb+srv://", "http://").replace("mongodb://", "http://")
+        : uri
+    );
+    const pathname = parsed.pathname.replace(/^\//, "");
+    if (pathname && !pathname.includes("?")) {
+      dbName = pathname;
+    }
+  } catch {
+    // Keep default "chefora"
+  }
+
+  const db = client.db(dbName);
+  console.log(`[MongoDB] Connected successfully to database: "${dbName}"`);
+  return { client, db };
+}
+
 export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
-    const opts = {
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
-    };
-
     cached.promise = (async () => {
+      // First attempt: Try primary URI (from process.env.MONGODB_URI or direct URI)
       try {
-        const client = new MongoClient(MONGODB_URI, opts);
-        await client.connect();
+        return await tryConnect(PRIMARY_MONGODB_URI);
+      } catch (firstErr: any) {
+        console.warn("[MongoDB] Primary connection attempt failed:", firstErr?.message);
         
-        // Extract database name from URI if specified, otherwise default to "chefora"
-        let dbName = "chefora";
-        try {
-          const parsed = new URL(MONGODB_URI.startsWith("mongodb") ? MONGODB_URI.replace("mongodb+srv://", "http://").replace("mongodb://", "http://") : MONGODB_URI);
-          const pathname = parsed.pathname.replace(/^\//, "");
-          if (pathname && !pathname.includes("?")) {
-            dbName = pathname;
+        // Second attempt: If primary was different from direct URI, fallback to direct replica set URI
+        if (PRIMARY_MONGODB_URI !== DIRECT_MONGODB_URI) {
+          try {
+            console.log("[MongoDB] Attempting direct replica set connection fallback...");
+            return await tryConnect(DIRECT_MONGODB_URI);
+          } catch (secondErr: any) {
+            console.error("[MongoDB] Fallback connection also failed:", secondErr?.message);
+            cached.promise = null;
+            throw secondErr;
           }
-        } catch {
-          // Keep default "chefora"
         }
 
-        const db = client.db(dbName);
-        console.log(`[MongoDB] Connected successfully to database: "${dbName}"`);
-        return { client, db };
-      } catch (err: any) {
-        console.error("[MongoDB] Connection error:", err?.message || err);
-        cached.promise = null; // Reset promise on failure so next call can retry
-        throw err;
+        cached.promise = null;
+        throw firstErr;
       }
     })();
   }
