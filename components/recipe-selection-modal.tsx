@@ -14,16 +14,18 @@ interface Recipe {
   id: number
   title: string
   image: string
-  readyInMinutes: number
-  servings: number
+  readyInMinutes?: number
+  servings?: number
+  summary?: string
   ingredients?: string[]
+  [key: string]: any
 }
 
 interface RecipeSelectionModalProps {
-  recipes: Recipe[]
+  recipes: any[]
   isOpen: boolean
   onClose: () => void
-  onGenerateList: (selectedRecipes: Recipe[]) => void
+  onGenerateList: (selectedRecipes: any[]) => void
 }
 
 export function RecipeSelectionModal({ recipes, isOpen, onClose, onGenerateList }: RecipeSelectionModalProps) {

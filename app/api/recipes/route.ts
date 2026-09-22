@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "Query parameter is required" }, { status: 400 })
     }
 
-    let recipes = []
+    let recipes: any[] = []
 
     // Use API Ninjas for food searching and finding
     if (source === "ninjas" || source === "both") {
